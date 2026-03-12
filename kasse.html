@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Kasse</title>
+
+<script src="/socket.io/socket.io.js"></script>
+
+<style>
+
+body{
+font-family:Arial;
+text-align:center;
+background:#f2f2f2;
+}
+
+button{
+font-size:30px;
+padding:25px;
+margin:20px;
+width:320px;
+}
+
+#popup{
+display:none;
+position:fixed;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+background:white;
+padding:40px;
+border-radius:15px;
+}
+
+.extra{
+display:block;
+background:#ffd966;
+padding:20px;
+margin:10px;
+font-size:22px;
+cursor:pointer;
+}
+
+.selected{
+background:#ff9900;
+}
+
+#numberPopup{
+display:none;
+position:fixed;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+background:#ff6600;
+color:white;
+padding:50px;
+font-size:40px;
+border-radius:20px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>Kasse</h1>
+
+<button onclick="openOrder('Pommes klein')">Pommes klein</button>
+<button onclick="openOrder('Pommes groß')">Pommes groß</button>
+
+<div id="popup">
+
+<h2 id="itemName"></h2>
+
+<div class="extra" onclick="toggleExtra(this,'Mayonnaise')">Mayonnaise</div>
+<div class="extra" onclick="toggleExtra(this,'Ketchup')">Ketchup</div>
+<div class="extra" onclick="toggleExtra(this,'Pommes Soße')">Pommes Soße</div>
+
+<br>
+
+<button onclick="sendOrder()">Bestellen</button>
+<button onclick="cancel()">Abbrechen</button>
+
+</div>
+
+<div id="numberPopup">
+<div id="numberText"></div>
+<br>
+<button onclick="closeNumber()">OK</button>
+</div>
+
+<script>
+
+const socket=io()
+
+let item=""
+let extras=[]
+
+function openOrder(i){
+
+item=i
+extras=[]
+
+document.getElementById("itemName").innerText=i
+document.getElementById("popup").style.display="block"
+
+document.querySelectorAll(".extra").forEach(e=>e.classList.remove("selected"))
+
+}
+
+function toggleExtra(el,name){
+
+if(extras.includes(name)){
+
+extras=extras.filter(x=>x!=name)
+el.classList.remove("selected")
+
+}else{
+
+extras.push(name)
+el.classList.add("selected")
+
+}
+
+}
+
+function cancel(){
+
+document.getElementById("popup").style.display="none"
+
+}
+
+function sendOrder(){
+
+socket.emit("newOrder",{
+item:item,
+extras:extras
+})
+
+document.getElementById("popup").style.display="none"
+
+}
+
+socket.on("orderNumber",num=>{
+
+document.getElementById("numberText").innerText="Bestellung "+num
+document.getElementById("numberPopup").style.display="block"
+
+})
+
+function closeNumber(){
+
+document.getElementById("numberPopup").style.display="none"
+
+}
+
+</script>
+
+</body>
+</html>
